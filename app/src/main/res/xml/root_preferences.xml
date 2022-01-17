@@ -1,0 +1,16 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <PreferenceCategory app:title="@string/setting_title">
+
+        <SwitchPreferenceCompat
+            app:key="brightControl"
+            app:title="@string/bright_control_title" />
+
+        <SwitchPreference
+            app:key="instantMode"
+            app:title="@string/instant_mode_title"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

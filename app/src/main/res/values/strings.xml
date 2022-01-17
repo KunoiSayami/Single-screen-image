@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Single screen image</string>
+    <string name="btn_configure">Configure</string>
+    <string name="btn_select_url">Select image</string>
+    <string name="btn_show_full_screen">Full image</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="setting_title">Misc</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <string name="instant_mode_title">Instant mode</string>
+    <string name="bright_control_title">Max bright</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+</resources>
