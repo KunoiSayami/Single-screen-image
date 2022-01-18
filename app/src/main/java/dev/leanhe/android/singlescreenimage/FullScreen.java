@@ -16,24 +16,25 @@
  */
 package dev.leanhe.android.singlescreenimage;
 
-import static dev.leanhe.android.singlescreenimage.MainActivity.SHARED_PREFERENCES_NAME;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -42,6 +43,7 @@ public class FullScreen extends AppCompatActivity {
     private static final String TAG = "FullScreenActivity";
 
     ImageView realImage;
+    Button btnConfigure;
     private float default_brightness;
 
     @Override
@@ -53,14 +55,22 @@ public class FullScreen extends AppCompatActivity {
         setContentView(R.layout.activity_full_screen);
 
         realImage = findViewById(R.id.imageView);
+        btnConfigure = findViewById(R.id.btnConfigure);
+        btnConfigure.setOnClickListener( v -> startActivity(new Intent(this, SettingsActivity.class)));
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String imgUri = preferences.getString(MainActivity.IMAGE_KEY, null);
         Log.d(TAG, "onCreate: uri: " + imgUri);
         if (imgUri != null) {
-            Uri uri = Uri.parse(imgUri);
             try {
-                Bitmap bm = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+                ContextWrapper cw = new ContextWrapper(getApplicationContext());
+                // path to /data/data/yourapp/app_data/imageDir
+                File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+                File file = new File(directory, "default.jpg");
+                FileInputStream inputStream = new FileInputStream(file);
+
+                Bitmap bm = BitmapFactory.decodeStream(inputStream);
                 realImage.setImageBitmap(bm);
+                inputStream.close();
             } catch (FileNotFoundException e) {
                 Toast.makeText(getApplicationContext(), R.string.file_not_found, Toast.LENGTH_SHORT).show();
             } catch (IOException e) {

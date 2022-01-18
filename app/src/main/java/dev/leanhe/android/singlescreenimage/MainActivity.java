@@ -16,22 +16,29 @@
  */
 package dev.leanhe.android.singlescreenimage;
 
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
-
-    public static final String SHARED_PREFERENCES_NAME = "0x9114514";
 
     public static final String IMAGE_KEY = "uri";
 
@@ -42,11 +49,20 @@ public class MainActivity extends AppCompatActivity {
     ActivityResultLauncher<String> mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
+
                     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
                     SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString(IMAGE_KEY, uri.toString());
-                    //Log.d(TAG, "initActivity: " + uri.toString());
-                    editor.commit();
+                    try {
+                        String location = saveToInternalStorage(uri);
+                        Log.d(TAG, "location: " + location);
+                        editor.putString(IMAGE_KEY, location);
+                        editor.commit();
+                    } catch (FileNotFoundException e) {
+                        Toast.makeText(getApplicationContext(), R.string.file_not_found, Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                        Toast.makeText(getApplicationContext(), R.string.io_error, Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "registerForActivityResult: Got io error", e);
+                    }
                 }
             });
 
@@ -78,6 +94,27 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    // https://stackoverflow.com/a/17674787
+    private String saveToInternalStorage(Uri uri) throws IOException {
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        // Create imageDir
+        File file = new File(directory,"default.jpg");
+
+        Bitmap bm = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
+        } catch (IOException e) {
+            Log.e(TAG, "saveToInternalStorage: Got IOException", e);
+        }
+        return directory.getAbsolutePath();
     }
 
 }
