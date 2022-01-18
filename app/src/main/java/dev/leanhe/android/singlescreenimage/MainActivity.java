@@ -16,19 +16,39 @@
  */
 package dev.leanhe.android.singlescreenimage;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String IMAGE_KEY = "uri";
+    public static final String SHARED_PREFERENCES_NAME = "0x9114514";
+
+    public static final String IMAGE_KEY = "uri";
+
+    private static final String TAG = "MainActivity";
 
     private Button btnFullScreen, btnConfigure, btnSelectUri;
 
+    ActivityResultLauncher<String> mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
+            uri -> {
+                if (uri != null) {
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString(IMAGE_KEY, uri.toString());
+                    //Log.d(TAG, "initActivity: " + uri.toString());
+                    editor.commit();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,30 +58,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void initActivity() {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         btnConfigure = findViewById(R.id.btnConfigure);
-        btnConfigure.setOnClickListener( v -> startActivity(new Intent(this, SettingsActivity.class)));
+        btnConfigure.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         btnFullScreen = findViewById(R.id.btnFullPage);
-        btnFullScreen.setOnClickListener( v -> startActivity(new Intent(this, FullScreen.class)));
+        btnFullScreen.setOnClickListener(v -> startActivity(new Intent(this, FullScreen.class)));
         btnSelectUri = findViewById(R.id.btnSelectUrl);
-        btnSelectUri.setOnClickListener( v -> {
-            Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-            getIntent.setType("image/*");
-
-            Intent pickIntent = new Intent(Intent.ACTION_PICK);
-            pickIntent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-
-            Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
-
-            startActivity(chooserIntent);
+        btnSelectUri.setOnClickListener(v -> {
+            mGetContent.launch("image/*");
         });
 
 
         String imageUri = preferences.getString(IMAGE_KEY, null);
+        boolean instantMode = preferences.getBoolean("instantMode", false);
 
-        if (imageUri != null) {
+        if (instantMode && imageUri != null) {
             startActivity(new Intent(this, FullScreen.class));
         }
 

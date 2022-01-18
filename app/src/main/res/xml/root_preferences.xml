@@ -3,7 +3,7 @@
 
     <PreferenceCategory app:title="@string/setting_title">
 
-        <SwitchPreferenceCompat
+        <SwitchPreference
             app:key="brightControl"
             app:title="@string/bright_control_title" />
 
